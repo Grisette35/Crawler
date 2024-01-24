@@ -6,7 +6,7 @@ from urllib.parse import urlparse
 from random import sample
 
 class Crawler:
-    def __init__(self, seed_url, max_urls=10):
+    def __init__(self, seed_url, max_urls=50):
         self.seed_url = seed_url
         self.max_urls=max_urls
         self.downloaded=set()
@@ -49,7 +49,20 @@ class Crawler:
                         time.sleep(3)  # Respecte la politesse en attendant 3 secondes entre chaque appel
         except Exception as e:
             print(f"Error extracting links from {url}: {str(e)}")
-
+    
+    def extract_links_sitemap(self, url):
+        parse_url = urlparse(url)
+        reform_base_url = parse_url.scheme+'://'+parse_url.netloc
+        rp = urllib.robotparser.RobotFileParser()
+        rp.set_url(reform_base_url+"/robots.txt")
+        rp.read()
+        links=rp.site_maps()
+        for link in links:
+            if link[-4:]==".xml":
+                links.remove(link)
+                links+=self.extract_links_sitemap(link)
+        return links
+            
     def is_valid_url(self, url):
         parse_url = urlparse(url)
         reform_base_url = parse_url.scheme+'://'+parse_url.netloc
