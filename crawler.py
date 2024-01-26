@@ -36,26 +36,29 @@ class Crawler:
             if response.status_code == 200:
                 content = response.text
                 soup = BeautifulSoup(content, 'html.parser')
-                links = soup.find_all('a', href=True)
+                links_sitemap = self.extract_links_sitemap(url)
+                links_found = soup.find_all('a', href=True)
+                links = list(set(links_sitemap+links_found))
                 indice_to_draw=sample(range(1, len(links)), 5)
-                #print(indice_to_draw)
-                #print(len(links))
                 for indice in indice_to_draw: # Exploration de 5 liens maximum par page
                     new_url = links[indice]['href']
                     print(new_url)
-                    #print(self.is_valid_url(new_url))
                     if self.is_valid_url(new_url) and (new_url not in self.downloaded):
                         self.frontier.append(new_url)
                         time.sleep(3)  # Respecte la politesse en attendant 3 secondes entre chaque appel
         except Exception as e:
             print(f"Error extracting links from {url}: {str(e)}")
-    
-    def extract_links_sitemap(self, url):
+
+    def read_robots(self, url):
         parse_url = urlparse(url)
         reform_base_url = parse_url.scheme+'://'+parse_url.netloc
         rp = urllib.robotparser.RobotFileParser()
         rp.set_url(reform_base_url+"/robots.txt")
         rp.read()
+        return rp
+    
+    def extract_links_sitemap(self, url):
+        rp = self.read_robots(url)
         links=rp.site_maps()
         for link in links:
             if link[-4:]==".xml":
@@ -64,11 +67,7 @@ class Crawler:
         return links
             
     def is_valid_url(self, url):
-        parse_url = urlparse(url)
-        reform_base_url = parse_url.scheme+'://'+parse_url.netloc
-        rp = urllib.robotparser.RobotFileParser()
-        rp.set_url(reform_base_url+"/robots.txt")
-        rp.read()
+        rp = self.read_robots(url)
         return rp.can_fetch("*", url)
 
 # Exemple d'utilisation
