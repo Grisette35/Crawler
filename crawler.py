@@ -7,20 +7,20 @@ from random import sample
 from crawler_db import Crawler_db
 
 class Crawler:
-    def __init__(self, seed_url, max_urls=50):
+    def __init__(self, seed_url, conn, cursor, max_urls=50):
         self.seed_url = seed_url
         self.max_urls = max_urls
         self.downloaded = set()
         self.frontier = seed_url
         self.content_current_url = None  # Pour éviter un trop grand nombre de requêtes à la page
-        #self.conn = conn
-        #self.cursor = cursor
+        self.conn = conn
+        self.cursor = cursor
 
     def crawl(self):
         while self.frontier and len(self.downloaded) < self.max_urls:
             current_url = self.frontier.pop(0)
-            print(current_url)
-            print(self.downloaded)
+            #print(current_url)
+            #print(self.downloaded)
             if current_url not in self.downloaded:
                 self.downloaded.add(current_url)
                 self.download_page(current_url)
@@ -33,6 +33,12 @@ class Crawler:
             if response.status_code == 200:
                 content = response.text
                 self.content_current_url=content
+
+                crawler_db=Crawler_db()
+
+                if crawler_db.url_in_db(self.conn, self.cursor, url)==0:
+                    crawler_db.save_to_database(self.conn, self.cursor, url, self.content_current_url)
+                crawler_db.mettre_a_jour_age(self.conn, self.cursor, url)
                 with open('crawled_webpages.txt', 'a') as file:
                     file.write(url + '\n')
         except Exception as e:

@@ -1,3 +1,5 @@
+import sqlite3
+
 class Crawler_db:
     def create_conn(self):
         conn = sqlite3.connect('pages_db.db')
