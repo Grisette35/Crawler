@@ -8,6 +8,15 @@ from crawler_db import Crawler_db
 
 class Crawler:
     def __init__(self, seed_url, conn, cursor, max_urls=100):
+        """
+        Initializes the Crawler object.
+
+        Parameters:
+        - seed_url (str or list of str): The starting URL or list of URLs.
+        - conn: Database connection object.
+        - cursor: Database cursor object.
+        - max_urls (int, optional): Maximum number of URLs to crawl. Default is 100.
+        """
         self.seed_url = seed_url
         self.max_urls = max_urls
         self.downloaded = set()
@@ -17,6 +26,9 @@ class Crawler:
         self.cursor = cursor
 
     def crawl(self):
+        """
+        Initiates the crawling process until the frontier is empty or the maximum URLs are reached.
+        """
         while self.frontier and len(self.downloaded) < self.max_urls:
             current_url = self.frontier.pop(0)
             #print(current_url)
@@ -28,6 +40,12 @@ class Crawler:
                 self.extract_links(current_url)
 
     def download_page(self, url):
+        """
+        Downloads the content of a web page and saves it to the database.
+
+        Parameters:
+        - url (str): The URL of the web page to download.
+        """
         try:
             response = requests.get(url)
             if response.status_code == 200:
@@ -45,6 +63,12 @@ class Crawler:
             print(f"Error downloading {url}: {str(e)}")
 
     def extract_links(self, url):
+        """
+        Extracts links from a web page, adds valid links to the frontier for further crawling.
+
+        Parameters:
+        - url (str): The URL of the web page to extract links from.
+        """
         #try:
             #response = requests.get(url)
             #if response.status_code == 200:
@@ -75,12 +99,30 @@ class Crawler:
             #print(f"Error extracting links from {url}: {str(e)}")
 
     def actual_url(self, url):
+        """
+        Checks whether the provided URL is a valid web page URL.
+
+        Parameters:
+        - url (str): The URL to be validated.
+
+        Returns:
+        - bool: True if the URL is considered a valid web page URL, False otherwise.
+        """
         parse_url = urlparse(url)
         if parse_url.scheme=='mailto' or parse_url.netloc=='' or parse_url.scheme=='':
             return False
         return True
 
     def reform_url_robots(self, url):
+        """
+        Forms the URL for the `robots.txt` file based on the given web page URL.
+
+        Parameters:
+        - url (str): The web page URL.
+
+        Returns:
+        - str: The URL for the `robots.txt` file corresponding to the given web page URL.
+        """
         parse_url = urlparse(url)
         print(url)
         print(parse_url)
@@ -88,12 +130,32 @@ class Crawler:
         return reform_base_url+"/robots.txt"
 
     def read_robots(self, url):
+        """
+        Reads and parses the content of the `robots.txt` file for a given URL.
+
+        Parameters:
+        - url (str): The web page URL for which the `robots.txt` file needs to be read.
+
+        Returns:
+        - urllib.robotparser.RobotFileParser: An instance of the `RobotFileParser` class containing the parsed rules.
+        """
         rp = urllib.robotparser.RobotFileParser()
         rp.set_url(self.reform_url_robots(url))
         rp.read()
         return rp
     
     def extract_links_sitemap(self,rp, url):
+        """
+        Extracts links from the sitemap provided by the `robots.txt` rules.
+        It recursively follows sitemap links that end with ".xml" to retrieve additional URLs.
+
+        Parameters:
+        - rp (urllib.robotparser.RobotFileParser): The parsed `robots.txt` rules for the given URL.
+        - url (str): The web page URL.
+
+        Returns:
+        - list: A list of URLs extracted from the sitemap.
+        """
         links=rp.site_maps()
         if links is None:
             return []
@@ -104,9 +166,31 @@ class Crawler:
         return links
             
     def is_valid_url(self, rp, url):
+        """
+        Checks whether a given URL is allowed by the `robots.txt` rules.
+        It uses the `can_fetch` method of the `RobotFileParser` class.
+
+        Parameters:
+        - rp (urllib.robotparser.RobotFileParser): The parsed `robots.txt` rules for the given URL.
+        - url (str): The URL to be checked.
+
+        Returns:
+        - bool: True if the URL is allowed, False otherwise.
+        """
         return rp.can_fetch("*", url)
 
     def crawler_delay(self, rp, url):
+        """
+        Retrieves the crawl delay for a given URL from the `robots.txt` rules.
+        If no delay is specified, it defaults to 0.
+
+        Parameters:
+        - rp (urllib.robotparser.RobotFileParser): The parsed `robots.txt` rules for the given URL.
+        - url (str): The web page URL.
+
+        Returns:
+        - int: The crawl delay in seconds. Returns 0 if no specific delay is specified.
+        """
         delay=rp.crawl_delay(url)
         if delay is None:
             delay=0
