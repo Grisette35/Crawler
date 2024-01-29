@@ -7,7 +7,7 @@ from random import sample
 from crawler_db import Crawler_db
 
 class Crawler:
-    def __init__(self, seed_url, conn, cursor, max_urls=50):
+    def __init__(self, seed_url, conn, cursor, max_urls=100):
         self.seed_url = seed_url
         self.max_urls = max_urls
         self.downloaded = set()
@@ -56,7 +56,7 @@ class Crawler:
         links_found = soup.find_all('a', href=True)
         links = list(set(links_sitemap+links_found))
                 
-        indice_to_draw=sample(range(len(links)), min(len(links),5))
+        indice_to_draw=sample(range(len(links)), min(len(links),10))
                 
         for indice in indice_to_draw: # Exploration de 5 liens maximum par page
             new_url = links[indice]['href']
@@ -76,14 +76,14 @@ class Crawler:
 
     def actual_url(self, url):
         parse_url = urlparse(url)
-        if parse_url.scheme=='mailto':
+        if parse_url.scheme=='mailto' or parse_url.netloc=='' or parse_url.scheme=='':
             return False
         return True
 
     def reform_url_robots(self, url):
         parse_url = urlparse(url)
-        #print(url)
-        #print(parse_url)
+        print(url)
+        print(parse_url)
         reform_base_url = parse_url.scheme+'://'+parse_url.netloc
         return reform_base_url+"/robots.txt"
 
@@ -116,8 +116,12 @@ class Crawler:
 # Exemple d'utilisation
 if __name__ == "__main__":
     #starting_url = "https://ensai.fr/"
-    crawler = Crawler(["https://ensai.fr/"])
+    crawler_db=Crawler_db()
+    conn, cursor = crawler_db.create_conn()
+    crawler_db.initialize_database(conn, cursor)
+    crawler = Crawler(["https://ensai.fr/"], conn, cursor)
     crawler.crawl()
+    crawler_db.close_conn(conn)
     #print(crawler.is_valid_url("https://ensai.fr/"))
     #print(sample(range(0, 5), 3))
     #crawler.extract_links("https://ensai.fr/")

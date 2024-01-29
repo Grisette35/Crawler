@@ -22,7 +22,7 @@ class Crawler_db:
 
     def save_to_database(self, conn, cursor, url, content):
         cursor.execute('''
-        INSERT INTO downloaded_pages (url, content, age) VALUES (?, ?)
+        INSERT INTO downloaded_pages (url, content, age) VALUES (?, ?, ?)
     ''', (url, content, 0))
         conn.commit()
 
@@ -35,11 +35,11 @@ class Crawler_db:
 
     def mettre_a_jour_age(self, conn, cursor, current_url):
         cursor.execute('''
-        UPDATE pages SET age = age + 1 WHERE url <> ?
+        UPDATE downloaded_pages SET age = age + 1 WHERE url <> ?
         ''', (current_url,))
 
         cursor.execute('''
-        UPDATE pages SET age = 0 WHERE url = ?
+        UPDATE downloaded_pages SET age = 0 WHERE url = ?
         ''', (current_url,))
 
         conn.commit()
