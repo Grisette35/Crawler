@@ -28,13 +28,15 @@ The `main.py` script demonstrates an example of using the web crawler and the da
 
 2. **Database Setup:** The project uses SQLite as the database. The default database file is `pages_db.db`, and the relevant table is `downloaded_pages`.
 
-3. **Run the Example:**
+3. **Run the Project:**
 
-   ```bash
-   python main.py
-   ```
+To run the web crawler, you can use the following command format:
 
-   This will initialize the database, create a crawler with a seed URL, and start the crawling process.
+```bash
+python main.py "https://example.com" --max_urls 50
+```
+
+Replace "https://example.com" with your desired seed URL, and adjust the --max_urls parameter accordingly. This will initialize the database, create a crawler with a seed URL, and start the crawling process.
 
 ## Customization
 
