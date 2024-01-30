@@ -175,23 +175,6 @@ class Crawler:
         """
         return rp.can_fetch("*", url)
 
-    def crawler_delay(self, rp, url):
-        """
-        Retrieves the crawl delay for a given URL from the `robots.txt` rules.
-        If no delay is specified, it defaults to 0.
-
-        Parameters:
-        - rp (urllib.robotparser.RobotFileParser): The parsed `robots.txt` rules for the given URL.
-        - url (str): The web page URL.
-
-        Returns:
-        - int: The crawl delay in seconds. Returns 0 if no specific delay is specified.
-        """
-        delay=rp.crawl_delay(url)
-        if delay is None:
-            delay=0
-        return delay
-
     def write_downloaded(self):
         """
         Writes the downloaded URLs to 'crawled_webpages.txt' in the current directory.
