@@ -55,12 +55,11 @@ class Crawler_db:
     ''', (url, content, 0))
         conn.commit()
 
-    def url_in_db(self, conn, cursor, current_url):
+    def url_in_db(self, cursor, current_url):
         """
         Checks if a given URL already exists in the 'downloaded_pages' table.
 
         Parameters:
-        - conn: SQLite database connection object.
         - cursor: SQLite database cursor object.
         - current_url (str): URL to be checked.
 
@@ -73,7 +72,7 @@ class Crawler_db:
         result = cursor.fetchone()
         return result[0]
 
-    def mettre_a_jour_age(self, conn, cursor, current_url):
+    def mettre_a_jour_age(self, conn, cursor, current_url, content_current_url):
         """
         Updates the 'age' column for existing records in the 'downloaded_pages' table.
         Increases the age for all records except the one with the specified URL, which has its age reset to 0.
@@ -88,7 +87,37 @@ class Crawler_db:
         ''', (current_url,))
 
         cursor.execute('''
-        UPDATE downloaded_pages SET age = 0 WHERE url = ?
-        ''', (current_url,))
+        UPDATE downloaded_pages SET age = 0, content = ? WHERE url = ?
+        ''', (content_current_url,current_url,))
 
         conn.commit()
+    
+    def max_age(self, cursor):
+        """
+        Fetch the URL with the oldest age.
+
+        Parameters:
+        - cursor: SQLite database cursor object.
+        """
+        cursor.execute('''
+        SELECT url, MAX(age) FROM downloaded_pages
+        ''')
+        result = cursor.fetchall()
+        
+        return result[0]
+    
+    def mettre_a_jour_max(self, conn, cursor, content, url):
+        """
+        Fetch the URL with the oldest age.
+
+        Parameters:
+        - conn: SQLite database connection object.
+        - cursor: SQLite database cursor object.
+        - content: content of the webpage
+        - url of the webpage
+        """
+        cursor.execute('''
+        UPDATE downloaded_pages SET age = 0, content = ? WHERE url = ?
+        ''', (content,url,))
+        conn.commit()
+

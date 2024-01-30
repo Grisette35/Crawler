@@ -11,6 +11,7 @@ NB: `robots.txt` are read by `urllib.robotparser`. The rules of this library are
 ### 1. Web Crawler (`crawler.py`)
 
 The `crawler.py` script defines the core functionality of the web crawler. It utilizes the `requests` library for making HTTP requests, `BeautifulSoup` for HTML parsing, and incorporates politeness by introducing delays between requests. The crawler follows a breadth-first strategy to explore and download web pages up to a specified limit.
+The crawler updates the database for the link with the greatest age, every 3 links added to the database, if their age is greater than 5.
 
 ### 2. Database Manager (`crawler_db.py`)
 
@@ -41,6 +42,12 @@ python main.py "https://ensai.fr/" --max_urls 10
 Replace "https://ensai.fr/" with your desired seed URL, and adjust the --max_urls parameter accordingly. This will initialize the database, create a crawler with a seed URL, and start the crawling process.
 You might need to change the `python` command by `python3`.
 You should be aware that crawling with the --max_urls parameter set to 100 takes approximately 20 minutes.
+
+For more information on the parameters, you can use the following command:
+
+```bash
+python main.py --help
+```
 
 ## Contributor
 

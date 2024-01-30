@@ -31,13 +31,30 @@ class Crawler:
         Initiates the crawling process until the frontier is empty or the maximum URLs are reached.
         """
         while self.frontier and len(self.downloaded) < self.max_urls:
+            print(len(self.frontier))
+
             current_url = self.frontier.pop(0)
-            if len(self.downloaded)%5==0:
-                print(f"{len(self.downloaded)} URLs have been parsed")
+            if len(self.downloaded)%3==0 and len(self.downloaded)>0:
+
+                crawler_db=Crawler_db()
+                url_max, max_age=crawler_db.max_age(self.cursor)
+                if max_age>5:
+                    try:
+                        response = requests.get(url_max)
+                        if response.status_code == 200:
+                            content = response.text
+                            crawler_db.mettre_a_jour_max(self.conn, self.cursor, content, url_max)
+                    except Exception as e:
+                        print(f"Error when re-downloading {url_max}: {str(e)}")
+
             if current_url not in self.downloaded:
                 self.downloaded.add(current_url)
                 self.download_page(current_url)
                 time.sleep(5)  # Attendre au moins 5s avant de download une autre page
+
+                if len(self.downloaded)%5==0 and len(self.downloaded)>0:
+                    print(f"{len(self.downloaded)} URLs have been parsed")
+
                 self.extract_links(current_url)
 
     def download_page(self, url):
@@ -55,9 +72,9 @@ class Crawler:
 
                 crawler_db=Crawler_db()
 
-                if crawler_db.url_in_db(self.conn, self.cursor, url)==0:
+                if crawler_db.url_in_db(self.cursor, url)==0:
                     crawler_db.save_to_database(self.conn, self.cursor, url, self.content_current_url)
-                crawler_db.mettre_a_jour_age(self.conn, self.cursor, url)
+                crawler_db.mettre_a_jour_age(self.conn, self.cursor, url, self.content_current_url)
         except Exception as e:
             print(f"Error downloading {url}: {str(e)}")
 
@@ -133,7 +150,7 @@ class Crawler:
         Returns:
         - urllib.robotparser.RobotFileParser: An instance of the `RobotFileParser` class containing the parsed rules.
         """
-        socket.setdefaulttimeout(5)  # To avoid that some rp.read() might be stuck
+        socket.setdefaulttimeout(10)  # To avoid that some rp.read() might be stuck
         rp = urllib.robotparser.RobotFileParser()
         rp.set_url(self.reform_url_robots(url))
         rp.read()
