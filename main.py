@@ -1,4 +1,5 @@
 import argparse
+import time
 from crawler import Crawler
 from crawler_db import Crawler_db
 
@@ -9,7 +10,7 @@ def parse_args():
     Returns:
     - argparse.Namespace: Parsed command-line arguments.
     """
-    parser = argparse.ArgumentParser(description="Web Crawler Example")
+    parser = argparse.ArgumentParser(description="Web Crawler")
     parser.add_argument(
         "seed_url",
         type=str,
@@ -27,6 +28,9 @@ def main():
     # Parse command-line arguments
     args = parse_args()
 
+    # Saving the time when the crawler starts
+    t0=time.time()
+    
     # Initialize database
     crawler_db = Crawler_db()
     conn, cursor = crawler_db.create_conn()
@@ -38,8 +42,16 @@ def main():
     # Start crawling
     crawler.crawl()
 
+    crawler.write_downloaded()
+
     # Close the database connection
     crawler_db.close_conn(conn)
+
+    # Saving the time the crawler ends
+    t1=time.time()
+
+    # Printing the time taken by the crawler to crawl
+    print(f"time taken to crawl: {t1-t0}")
 
 if __name__ == "__main__":
     main()
