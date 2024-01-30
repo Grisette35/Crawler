@@ -4,6 +4,8 @@
 
 This Python-based project provides a simple web crawler that can be used to explore and download web pages while respecting `robots.txt` rules and incorporating database functionality for storing crawled data.
 
+NB: `robots.txt` are read by `urllib.robotparser`. The rules of this library are that everything that is not explicitely disallowed for an agent-user is allowed.
+
 ## Project Components
 
 ### 1. Web Crawler (`crawler.py`)
@@ -33,10 +35,10 @@ The `main.py` script demonstrates an example of using the web crawler and the da
 To run the web crawler, you can use the following command format:
 
 ```bash
-python main.py "https://example.com" --max_urls 50
+python main.py "https://ensai.fr/" --max_urls 10
 ```
 
-Replace "https://example.com" with your desired seed URL, and adjust the --max_urls parameter accordingly. This will initialize the database, create a crawler with a seed URL, and start the crawling process.
+Replace "https://ensai.fr/" with your desired seed URL, and adjust the --max_urls parameter accordingly. This will initialize the database, create a crawler with a seed URL, and start the crawling process.
 
 ## Customization
 
