@@ -22,7 +22,7 @@ class Crawler:
         self.max_urls = max_urls
         self.downloaded = set()
         self.frontier = [seed_url]
-        self.content_current_url = None  # Pour éviter un trop grand nombre de requêtes à la page
+        self.content_current_url = None  # Avoid too many requests and respect politeness
         self.conn = conn
         self.cursor = cursor
 
@@ -77,9 +77,9 @@ class Crawler:
             links_found = [link['href'] for link in links_found]
             links = list(set(links_sitemap+links_found))
                 
-            indice_to_draw=sample(range(len(links)), min(len(links),15))
+            indice_to_draw=sample(range(len(links)), min(len(links),15)) # Exploration de 15 liens maximum par page
                 
-            for indice in indice_to_draw: # Exploration de 15 liens maximum par page
+            for indice in indice_to_draw:
                 print(links[indice])
                 new_url = links[indice]
                 if self.actual_url(new_url):
