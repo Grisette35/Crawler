@@ -39,19 +39,7 @@ python main.py "https://ensai.fr/" --max_urls 10
 ```
 
 Replace "https://ensai.fr/" with your desired seed URL, and adjust the --max_urls parameter accordingly. This will initialize the database, create a crawler with a seed URL, and start the crawling process.
-
-## Customization
-
-Feel free to customize the project based on your specific requirements:
-
-- Adjust the seed URL, maximum URLs to crawl, and other parameters in `main.py`.
-- Modify database-related parameters or use a different database system in `crawler_db.py`.
-- Tune the crawler's politeness settings, delay durations, or add additional functionality in `crawler.py`.
-
-## Notes
-
-- Ensure compliance with web scraping policies and respect the terms of service of the websites being crawled.
-- Adapt the code to handle different website structures, handle exceptions, and improve error handling.
+You should be aware that crawling with the --max_urls parameter set to 100 takes approximately 20 minutes.
 
 ## Contributor
 
