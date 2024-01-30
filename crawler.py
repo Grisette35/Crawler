@@ -80,7 +80,6 @@ class Crawler:
             indice_to_draw=sample(range(len(links)), min(len(links),15)) # Exploration de 15 liens maximum par page
                 
             for indice in indice_to_draw:
-                print(links[indice])
                 new_url = links[indice]
                 if self.actual_url(new_url):
                     if self.reform_url_robots(new_url)!=self.reform_url_robots(url):

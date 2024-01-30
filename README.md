@@ -39,6 +39,7 @@ python main.py "https://ensai.fr/" --max_urls 10
 ```
 
 Replace "https://ensai.fr/" with your desired seed URL, and adjust the --max_urls parameter accordingly. This will initialize the database, create a crawler with a seed URL, and start the crawling process.
+You might need to change the `python` command by `python3`.
 You should be aware that crawling with the --max_urls parameter set to 100 takes approximately 20 minutes.
 
 ## Contributor
