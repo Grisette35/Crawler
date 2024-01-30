@@ -1,6 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
 import time
+import socket
 import urllib.robotparser
 from urllib.parse import urlparse
 from random import sample
@@ -20,7 +21,7 @@ class Crawler:
         self.seed_url = seed_url
         self.max_urls = max_urls
         self.downloaded = set()
-        self.frontier = seed_url
+        self.frontier = [seed_url]
         self.content_current_url = None  # Pour éviter un trop grand nombre de requêtes à la page
         self.conn = conn
         self.cursor = cursor
@@ -31,8 +32,8 @@ class Crawler:
         """
         while self.frontier and len(self.downloaded) < self.max_urls:
             current_url = self.frontier.pop(0)
-            #print(current_url)
-            #print(self.downloaded)
+            if len(self.downloaded)%5==0:
+                print(f"{len(self.downloaded)} URLs have been parsed")
             if current_url not in self.downloaded:
                 self.downloaded.add(current_url)
                 self.download_page(current_url)
@@ -57,8 +58,6 @@ class Crawler:
                 if crawler_db.url_in_db(self.conn, self.cursor, url)==0:
                     crawler_db.save_to_database(self.conn, self.cursor, url, self.content_current_url)
                 crawler_db.mettre_a_jour_age(self.conn, self.cursor, url)
-                with open('crawled_webpages.txt', 'a') as file:
-                    file.write(url + '\n')
         except Exception as e:
             print(f"Error downloading {url}: {str(e)}")
 
@@ -69,34 +68,32 @@ class Crawler:
         Parameters:
         - url (str): The URL of the web page to extract links from.
         """
-        #try:
-            #response = requests.get(url)
-            #if response.status_code == 200:
-                #content = response.text
         soup = BeautifulSoup(self.content_current_url, 'html.parser')
+
+        try:
+            rp = self.read_robots(url)
+            links_sitemap = self.extract_links_sitemap(rp,url)
+            links_found = soup.find_all('a', href=True)
+            links_found = [link['href'] for link in links_found]
+            links = list(set(links_sitemap+links_found))
                 
-        rp = self.read_robots(url)
-        links_sitemap = self.extract_links_sitemap(rp,url)
-        links_found = soup.find_all('a', href=True)
-        links = list(set(links_sitemap+links_found))
+            indice_to_draw=sample(range(len(links)), min(len(links),15))
                 
-        indice_to_draw=sample(range(len(links)), min(len(links),10))
-                
-        for indice in indice_to_draw: # Exploration de 5 liens maximum par page
-            new_url = links[indice]['href']
-            #print(new_url)
-            if self.actual_url(new_url):
-                if self.reform_url_robots(new_url)!=self.reform_url_robots(url):
-                    try:
-                        rp=self.read_robots(new_url)
+            for indice in indice_to_draw: # Exploration de 15 liens maximum par page
+                print(links[indice])
+                new_url = links[indice]
+                if self.actual_url(new_url):
+                    if self.reform_url_robots(new_url)!=self.reform_url_robots(url):
+                        try:
+                            rp=self.read_robots(new_url)
                     
-                        if self.is_valid_url(rp, new_url) and (new_url not in self.downloaded):
-                            self.frontier.append(new_url)
-                            time.sleep(3)  # Respecte la politesse en attendant 3 secondes entre chaque appel
-                    except Exception as e:
-                        print(f"Error reading robots.txt of {url}: {str(e)}")
-        #except Exception as e:
-            #print(f"Error extracting links from {url}: {str(e)}")
+                            if self.is_valid_url(rp, new_url) and (new_url not in self.downloaded):
+                                self.frontier.append(new_url)
+                                time.sleep(3)  # Respecte la politesse en attendant 3 secondes entre chaque appel
+                        except Exception as e:
+                            print(f"Error reading robots.txt of {url}: {str(e)}")
+        except Exception as e:
+            print(f"Error extracting links from {url}: {str(e)}")
 
     def actual_url(self, url):
         """
@@ -124,8 +121,8 @@ class Crawler:
         - str: The URL for the `robots.txt` file corresponding to the given web page URL.
         """
         parse_url = urlparse(url)
-        print(url)
-        print(parse_url)
+        #print(url)
+        #print(parse_url)
         reform_base_url = parse_url.scheme+'://'+parse_url.netloc
         return reform_base_url+"/robots.txt"
 
@@ -139,6 +136,7 @@ class Crawler:
         Returns:
         - urllib.robotparser.RobotFileParser: An instance of the `RobotFileParser` class containing the parsed rules.
         """
+        socket.setdefaulttimeout(3)
         rp = urllib.robotparser.RobotFileParser()
         rp.set_url(self.reform_url_robots(url))
         rp.read()
@@ -195,17 +193,19 @@ class Crawler:
         if delay is None:
             delay=0
         return delay
-        
 
-# Exemple d'utilisation
-if __name__ == "__main__":
-    #starting_url = "https://ensai.fr/"
-    crawler_db=Crawler_db()
-    conn, cursor = crawler_db.create_conn()
-    crawler_db.initialize_database(conn, cursor)
-    crawler = Crawler(["https://ensai.fr/"], conn, cursor)
-    crawler.crawl()
-    crawler_db.close_conn(conn)
-    #print(crawler.is_valid_url("https://ensai.fr/"))
-    #print(sample(range(0, 5), 3))
-    #crawler.extract_links("https://ensai.fr/")
+    def write_downloaded(self):
+        """
+        Writes the downloaded URLs to 'crawled_webpages.txt' in the current directory.
+
+        Parameters:
+        - None
+
+        Returns:
+        - None
+        """
+        all_urls=""
+        for url in list(self.downloaded):
+            all_urls+=url+'\n'
+        with open('crawled_webpages.txt', 'a') as file:
+                    file.write(all_urls)
