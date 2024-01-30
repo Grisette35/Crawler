@@ -121,8 +121,6 @@ class Crawler:
         - str: The URL for the `robots.txt` file corresponding to the given web page URL.
         """
         parse_url = urlparse(url)
-        #print(url)
-        #print(parse_url)
         reform_base_url = parse_url.scheme+'://'+parse_url.netloc
         return reform_base_url+"/robots.txt"
 
@@ -136,7 +134,7 @@ class Crawler:
         Returns:
         - urllib.robotparser.RobotFileParser: An instance of the `RobotFileParser` class containing the parsed rules.
         """
-        socket.setdefaulttimeout(3)
+        socket.setdefaulttimeout(5)  # To avoid that some rp.read() might be stuck
         rp = urllib.robotparser.RobotFileParser()
         rp.set_url(self.reform_url_robots(url))
         rp.read()
