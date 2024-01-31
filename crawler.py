@@ -31,7 +31,6 @@ class Crawler:
         Initiates the crawling process until the frontier is empty or the maximum URLs are reached.
         """
         while self.frontier and len(self.downloaded) < self.max_urls:
-            print(len(self.frontier))
 
             current_url = self.frontier.pop(0)
             if len(self.downloaded)%3==0 and len(self.downloaded)>0:
